@@ -9,7 +9,14 @@
 
 write_summary <- function(language,file) {
   degree_sequence = read.table(file, header = FALSE)
-  cat(language,length(degree_sequence$V1),mean(degree_sequence$V1),sum(degree_sequence$V1)/length(degree_sequence$V1),length(degree_sequence$V1)/sum(degree_sequence$V1),"\n")
+  cat(
+  	language,
+  	length(degree_sequence$V1),
+  	mean(degree_sequence$V1),
+  	length(degree_sequence$V2),
+  	mean(degree_sequence$V2),
+  	"\n"
+  )
 }
 
 # Read data from the file that list each language files
@@ -28,15 +35,6 @@ k_verification <- function(n, k_2){
   }
 }
 
-d_verification <- function(n, k_2, d){
-  if(k_2*n/(8*(n-1)) + 1/2 <= d & d >= n-1){
-    TRUE
-  } else {
-    FALSE
-  }
-}
-
 for (x in 1:nrow(source)) {
-  degree_sequence = read.table(source$file[x], header = FALSE)
-  write_summary(source$language[x], degree_sequence)
+  write_summary(source$language[x], source$file[x])
 }
