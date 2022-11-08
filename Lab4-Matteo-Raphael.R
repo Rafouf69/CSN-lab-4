@@ -60,6 +60,35 @@ for (x in 1:nrow(source)) {
 	
 	write_summary(source$language[x], language_data)
 	
-	plot(language_data$vertices, language_data$mean_length,
-			 xlab = "vertices", ylab = "mean dependency length")
+	mean_language_data = aggregate(
+		language_data, 
+		list(language_data$vertices), 
+		mean
+	)
+	
+	# VIZ
+	
+	plot(language_data$vertices, 
+			 language_data$mean_length,
+			 xlab = "vertices", 
+			 ylab = "mean dependency length", 
+			 main=source$language[x])
+	
+	plot(log(language_data$vertices), 
+			 log(language_data$mean_length),
+			 xlab = "log(vertices)", 
+			 ylab = "log(mean dependency length)", 
+			 main=source$language[x])
+	
+	plot(mean_language_data$vertices, 
+			 mean_language_data$mean_length,
+			 xlab = "vertices", 
+			 ylab = "mean mean dependency length",
+			 main=source$language[x])
+	
+	plot(log(mean_language_data$vertices), 
+			 log(mean_language_data$mean_length),
+			 xlab = "log(vertices)", 
+			 ylab = "log(mean mean dependency length)",
+			 main=source$language[x])
 }
