@@ -21,15 +21,7 @@ library(xtable)
 # Functions 
 #=======================================================================
 
-write_summary <- function(language,file) {
-  data = read.table(file, header = FALSE)
-  
-  colnames(data) <- c("vertices","degree_2nd_moment", "mean_length")
-  
-  valid_rows <- apply(data, 1, verification)
-  
-  data = data[valid_rows,]
-
+write_summary <- function(language, data) {
   cat(
   	language,
   	length(data$vertices),
@@ -58,11 +50,16 @@ verification <- function(row){
 }
 
 for (x in 1:nrow(source)) {
-  write_summary(source$language[x], source$file[x])
+	language_data = read.table(source$file[x], header = FALSE)
+	colnames(language_data) = c("vertices","degree_2nd_moment", "mean_length")
+	language_data = language_data[order(language_data$vertices), ]
 	
-	language = read.table(source$file[x], header = FALSE)
-	colnames(language) = c("vertices","degree_2nd_moment", "mean_length")
-	language = language[order(language$vertices), ]
-	plot(language$vertices, language$mean_length,
+	valid_rows <- apply(language_data, 1, verification)
+	
+	language_data = language_data[valid_rows,]
+	
+	write_summary(source$language[x], language_data)
+	
+	plot(language_data$vertices, language_data$mean_length,
 			 xlab = "vertices", ylab = "mean dependency length")
 }
