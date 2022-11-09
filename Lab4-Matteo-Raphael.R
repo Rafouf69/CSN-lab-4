@@ -99,6 +99,7 @@ viz <- function(language_data) {
 			 xlab = "vertices",
 			 ylab = "degree 2nd moment",
 			 main=source$language[x])
+	
 	lines(mean_language_data$vertices,mean_language_data$degree_2nd_moment, col = "green")
 	lines(mean_language_data$vertices,
 				(1 - 1/mean_language_data$vertices)*(5 - 6/mean_language_data$vertices), col = "red")
@@ -109,17 +110,26 @@ viz <- function(language_data) {
 # model part 4-5
 
 model <- function(data_language) {
-	linear_model = lm(log(degree_2nd_moment)~log(language_data$vertices), language_data)
-	a_initial = exp(coef(linear_model)[1])
-	b_initial = coef(linear_model)[2]
+	print("Model2")
+	lm_2 = lm(log(data_language$degree_2nd_moment)~log(data_language$vertices), data_language)
+	a_initial_2 = exp(coef(lm_2)[1])
+	b_initial_2 = coef(lm_2)[2]
+	nlm_2 = nls(data_language$degree_2nd_moment~a*language_data$vertices^b,
+							data=data_language,
+							start = list(a = a_initial_2, b = b_initial_2), 
+							trace = TRUE)
 	
-	nonlinear_model = nls(degree_2nd_moment~a*language_data$vertices^b,
-												data=language_data,
-												start = list(a = a_initial, b = b_initial), 
-												trace = TRUE)
 	
-	RSS = deviance(nonlinear_model)
-	AIC = AIC(nonlinear_model)
+	print("Model0")
+	lm_0 = lm(log(data_language$degree_2nd_moment)~log(data_language$vertices), data_language)
+	
+	b_initial_0 = coef(lm_0)[2]
+	nlm_0 = nls((data_language$vertices/2)^b0,
+							data=data_language,
+							start = list(b0 = b_initial_0), 
+							trace = TRUE)
+	
+	
 }
 
 for (x in 1:nrow(source)) {
