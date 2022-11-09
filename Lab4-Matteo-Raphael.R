@@ -91,4 +91,25 @@ for (x in 1:nrow(source)) {
 			 xlab = "log(vertices)", 
 			 ylab = "log(mean mean dependency length)",
 			 main=source$language[x])
+	
+	plot(log(language_data$vertices),
+			 log(language_data$mean_length),
+			 xlab = "vertices",
+			 ylab = "mean dependency length",
+			 main=source$language[x])
+	
+	lines(log(mean_language_data$vertices),log(mean_language_data$mean_length), col = "green")
+	lines(log(mean_language_data$vertices),log((mean_language_data$vertices+1)/3), col = "red")
+	
+	plot(language_data$vertices,
+			 language_data$degree_2nd_moment,
+			 xlab = "vertices",
+			 ylab = "degree 2nd moment",
+			 main=source$language[x])
+	lines(mean_language_data$vertices,mean_language_data$degree_2nd_moment, col = "green")
+	lines(mean_language_data$vertices,
+					(1 - 1/mean_language_data$vertices)*(5 - 6/mean_language_data$vertices), col = "red")
+	lines(mean_language_data$vertices,4-6/mean_language_data$vertices, col = "blue")
+	lines(mean_language_data$vertices,mean_language_data$vertices-1, col = "blue")
+	
 }
