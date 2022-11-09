@@ -26,8 +26,9 @@ write_summary <- function(language, data) {
   	language,
   	length(data$vertices),
   	mean(data$vertices),
-  	length(data$degree_2nd_moment),
+  	sd(data$vertices),
   	mean(data$degree_2nd_moment),
+  	sd(data$degree_2nd_moment),
   	"\n"
   )
 }
@@ -66,7 +67,7 @@ for (x in 1:nrow(source)) {
 		mean
 	)
 	
-	# VIZ
+	# VIZ - Part 3
 	
 	plot(language_data$vertices, 
 			 language_data$mean_length,
@@ -111,5 +112,16 @@ for (x in 1:nrow(source)) {
 					(1 - 1/mean_language_data$vertices)*(5 - 6/mean_language_data$vertices), col = "red")
 	lines(mean_language_data$vertices,4-6/mean_language_data$vertices, col = "blue")
 	lines(mean_language_data$vertices,mean_language_data$vertices-1, col = "blue")
+	
+	# Non-linear regression - Part 4
+	
+	linear_model = lm(log(degree_2nd_moment)~log(language_data$vertices), language_data)
+	a_initial = exp(coef(linear_model)[1])
+	b_initial = coef(linear_model)[2]
+	
+	nonlinear_model = nls(degree_2nd_moment~a*language_data$vertices^b,
+												data=language_data,
+												start = list(a = a_initial, b = b_initial), 
+												trace = TRUE)
 	
 }
