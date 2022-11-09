@@ -50,17 +50,9 @@ verification <- function(row){
 	return(condition_k && condition_d)
 }
 
-for (x in 1:nrow(source)) {
-	language_data = read.table(source$file[x], header = FALSE)
-	colnames(language_data) = c("vertices","degree_2nd_moment", "mean_length")
-	language_data = language_data[order(language_data$vertices), ]
-	
-	valid_rows <- apply(language_data, 1, verification)
-	
-	language_data = language_data[valid_rows,]
-	
-	write_summary(source$language[x], language_data)
-	
+# plot 2 and 3 part
+
+viz <- function(language_data) {
 	mean_language_data = aggregate(
 		language_data, 
 		list(language_data$vertices), 
@@ -109,12 +101,14 @@ for (x in 1:nrow(source)) {
 			 main=source$language[x])
 	lines(mean_language_data$vertices,mean_language_data$degree_2nd_moment, col = "green")
 	lines(mean_language_data$vertices,
-					(1 - 1/mean_language_data$vertices)*(5 - 6/mean_language_data$vertices), col = "red")
+				(1 - 1/mean_language_data$vertices)*(5 - 6/mean_language_data$vertices), col = "red")
 	lines(mean_language_data$vertices,4-6/mean_language_data$vertices, col = "blue")
 	lines(mean_language_data$vertices,mean_language_data$vertices-1, col = "blue")
-	
-	# Non-linear regression - Part 4
-	
+}
+
+# model part 4-5
+
+model <- function(data_language) {
 	linear_model = lm(log(degree_2nd_moment)~log(language_data$vertices), language_data)
 	a_initial = exp(coef(linear_model)[1])
 	b_initial = coef(linear_model)[2]
@@ -124,4 +118,24 @@ for (x in 1:nrow(source)) {
 												start = list(a = a_initial, b = b_initial), 
 												trace = TRUE)
 	
+	RSS = deviance(nonlinear_model)
+	AIC = AIC(nonlinear_model)
+}
+
+for (x in 1:nrow(source)) {
+	language_data = read.table(source$file[x], header = FALSE)
+	colnames(language_data) = c("vertices","degree_2nd_moment", "mean_length")
+	language_data = language_data[order(language_data$vertices), ]
+	
+	valid_rows <- apply(language_data, 1, verification)
+	
+	language_data = language_data[valid_rows,]
+	
+	write_summary(source$language[x], language_data)
+	
+	viz(language_data)
+	
+	# Non-linear regression - Part 4
+	
+	model(language_data)
 }
