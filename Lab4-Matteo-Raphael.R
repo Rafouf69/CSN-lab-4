@@ -110,6 +110,15 @@ viz <- function(language_data) {
 # model part 4-5
 
 model <- function(data_language) {
+	
+	print("Model1")
+	lm_1 = lm(log(data_language$degree_2nd_moment)~log(data_language$vertices), data_language)
+	b_initial_1 = coef(lm_1)[2]
+	nlm_1 = nls(data_language$degree_2nd_moment~(data_language$vertices*0.5)^b,
+							data=data_language,
+							start = list(b = b_initial_1), 
+							trace = TRUE)
+	
 	print("Model2")
 	lm_2 = lm(log(data_language$degree_2nd_moment)~log(data_language$vertices), data_language)
 	a_initial_2 = exp(coef(lm_2)[1])
@@ -119,15 +128,15 @@ model <- function(data_language) {
 							start = list(a = a_initial_2, b = b_initial_2), 
 							trace = TRUE)
 	
-	
-	print("Model0")
-	lm_0 = lm(log(data_language$degree_2nd_moment)~log(data_language$vertices), data_language)
-	
-	b_initial_0 = coef(lm_0)[2]
-	nlm_0 = nls((data_language$vertices/2)^b0,
+	print("Model3")
+	lm_3 = lm(log(data_language$degree_2nd_moment)~data_language$vertices, data_language)
+	a_initial_3 = exp(coef(lm_3)[1])
+	c_initial_3 = coef(lm_3)[2]
+	nlm_3 = nls(data_language$degree_2nd_moment~a*exp(c*language_data$vertices),
 							data=data_language,
-							start = list(b0 = b_initial_0), 
+							start = list(a = a_initial_3, c = c_initial_3), 
 							trace = TRUE)
+	
 	
 	
 }
