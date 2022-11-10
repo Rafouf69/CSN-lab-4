@@ -2,7 +2,9 @@
 title: "CSN lab-4"
 author: "Raphaël Vignon - Mattéo Boursault"
 date: "2022-11-10"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 ### Introduction
 
@@ -323,6 +325,9 @@ plot(log(Turkish$vertices), Turkish$degree_2nd_moment, main = "Turkish best fit"
   xlab = "log(vertices)", ylab = "degree 2nd moment")
   lines(log(Turkish$vertices), model_0_val, col = "green")
 ```
+
+### Discussion
+
 As we can see on the table, the best models for each language are the following :
 Arabic    : model 4+
 Basque    : model 4+
@@ -335,13 +340,28 @@ Hungarian : model 4+
 Italian   : model 4+
 Turkish   : model 0
 
-### Discussion
+Regarding the AIC table the difference between the null hypothesis model and the best model for each language are not significant except for Catalan, English and Hungarian (and eventually Italian).
 
+Also we have found that both languages with smallest values for µx are very good fitted with the model 0. We can expect than it's due to the particularity of those languages. For example in Chinese, it is possible to create a huge number of word by using different permutation of other word. So it's easier to combine words in this language and more difficult to approach the data for these language with a model.
 
+Additionally, in Chinese for example, words have a lot of meanings. However, for English there are a lot of words for similar signification. It's explain why English language have highs values for µn
+and sn (but not Chinese) regarding to table_1.
+
+An example of what we said about Chinese language :
+日=sun / jour
+本=book classifier / root / this
+人=human being
+中=middle / while / among
+国=country / nation / national
+日本=Japan
+日本人=Japanese
+本日=Today
+日人=Japanese
+中国=China
 
 ### Methods
 
-For checking homoscedasticity, we have use Levene's test. In statistics, Levene's test is an inferential statistic used to assess the equality of variances for a variable calculated for two or more groups. But perhaps the test is to restrictive because for all language, the assumption of homoscedasticity does not hold.
+For checking homoscedasticity, we have use Levene's test. In statistics, Levene's test is an inferential statistic used to assess the equality of variances for a variable calculated for two or more groups. But perhaps the test is to restrictive because for all language, the assumption of homoscedasticity does not hold.So we have aggregate values with 
 
 From a technical point of view, we decided to store all data in lists to facilitate data manipulation, reduce the number of calculations and save memory.
 
