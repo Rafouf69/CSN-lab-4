@@ -4,6 +4,14 @@ author: "Raphaël Vignon - Mattéo Boursault"
 date: "2022-11-10"
 output: html_document
 ---
+### Introduction
+
+In this fourth laboratory session we are introduced to the fitting of non-linears 
+function based on data which use collections of 
+syntactic dependency trees of sentences in multiple languages..
+The purpose is to experiment using different model as a way of seeing which of them represent the best our dependencies.
+
+### Results
 
 ```{r include=FALSE}
 
@@ -78,6 +86,8 @@ for (x in 1:nrow(source)) {
 
 rm(data, data_clean, data_ordered)
 colnames(table_1) = c('Language', 'N', 'µn', 'σn', 'µx', 'σx')
+
+table_1
 ```
 
 ## 3 Data analysis
@@ -223,14 +233,21 @@ for (language in source$language) {
 rm(lm_1, lm_2, lm_3, lm_4, lm_1_plus, lm_4_plus, nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus)
 colnames(table_s) <- c("Language", "0", "1", "2", "3", "4", "1+", "4+")
 colnames(table_AIC) <- c("Language", "0", "1", "2", "3", "4", "1+", "4+")
-colnames(table_AIC_diff) <- c("Language", "1", "2", "3", "4", "1+", "4+")
+colnames(table_AIC_diff) <- c("Language", "0", "1", "2", "3", "4", "1+", "4+")
 colnames(table_param) <- c("Language", "1-b", "2-a", "2-b", "3-a", "3-c", "4-a", "1+-b", "1+-d", "4+a", "4+d")
+
+table_s
+table_AIC
+table_AIC_diff
 ```
 
 ## 5 Results
 
 # 5.2 Final visualization
 ```{R message=FALSE}
+
+# To generate data for model 0
+model_0_fitted <- function(n){res = (1-1/n)*(5-6/n)}
 
 # Arabic
 Arabic = datas["Arabic"]$Arabic
@@ -256,9 +273,11 @@ plot(log(Catalan$vertices), Catalan$degree_2nd_moment, main = "Catalan best fit"
 # Chinese
 Chinese = datas["Chinese"]$Chinese
 Chinese <- aggregate(Chinese, list(Chinese$vertices), mean)
-plot(log(Chinese$vertices), Chinese$degree_2nd_moment, main = "Chinese best fit",
+seq = seq(1, length(Chinese$vertices))
+model_0_val = sapply(seq, model_0_fitted)
+plot(Chinese$vertices, Chinese$degree_2nd_moment, main = "Chinese best fit",
   xlab = "log(vertices)", ylab = "degree 2nd moment")
-  lines(log(Chinese$vertices), fitted(models["Chinese"]$Chinese$nlm_4_plus), col = "green")
+  lines(Chinese$vertices, model_0_val, col = "green")
   
 # Czech
 Czech = datas["Czech"]$Czech
@@ -298,10 +317,26 @@ plot(log(Italian$vertices), Italian$degree_2nd_moment, main = "Italian best fit"
 # Turkish
 Turkish = datas["Turkish"]$Turkish
 Turkish <- aggregate(Turkish, list(Turkish$vertices), mean)
+seq = seq(1, length(Turkish$vertices))
+model_0_val = sapply(seq, model_0_fitted)
 plot(log(Turkish$vertices), Turkish$degree_2nd_moment, main = "Turkish best fit",
   xlab = "log(vertices)", ylab = "degree 2nd moment")
-  lines(log(Turkish$vertices), fitted(models["Turkish"]$Turkish$nlm_4_plus), col = "green")
+  lines(log(Turkish$vertices), model_0_val, col = "green")
 ```
+As we can see on the table, the best models for each language are the following :
+Arabic    : model 4+
+Basque    : model 4+
+Catalan   : model 4+
+Chinese   : model 0
+Czech     : model 1
+English   : model 4+
+Greek     : model 4+
+Hungarian : model 4+
+Italian   : model 4+
+Turkish   : model 0
 
+### Discussion
 
+### Methods
 
+For checking homoscedasticity, we have use Levene's test. In statistics, Levene's test is an inferential statistic used to assess the equality of variances for a variable calculated for two or more groups. But perhaps the test is to restrictive because for all language, the assumption of homoscedasticity does not hold.
