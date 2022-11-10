@@ -204,8 +204,8 @@ for (language in source$language) {
                              nlm_1_plus = nlm_1_plus, 
                              nlm_4_plus = nlm_4_plus)
   
-  s_vec = sapply(list(nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus), compute_s)
-  AIC_vec = sapply(list(nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus), AIC)
+  s_vec = sapply(list(model_0_s, nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus), compute_s)
+  AIC_vec = sapply(list(model_0_AIC, nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus), AIC)
   AIC_diff_vec = AIC_vec - min(AIC_vec)
   
   table_s <- rbind(table_s, c(language, s_vec))
@@ -219,8 +219,8 @@ for (language in source$language) {
 }
 
 rm(lm_1, lm_2, lm_3, lm_4, lm_1_plus, lm_4_plus, nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus)
-colnames(table_s) <- c("Language", "1", "2", "3", "4", "1+", "4+")
-colnames(table_AIC) <- c("Language", "1", "2", "3", "4", "1+", "4+")
+colnames(table_s) <- c("Language", "0", "1", "2", "3", "4", "1+", "4+")
+colnames(table_AIC) <- c("Language", "0", "1", "2", "3", "4", "1+", "4+")
 colnames(table_AIC_diff) <- c("Language", "1", "2", "3", "4", "1+", "4+")
 colnames(table_param) <- c("Language", "1-b", "2-a", "2-b", "3-a", "3-c", "4-a", "1+-b", "1+-d", "4+a", "4+d")
 ```
