@@ -1,0 +1,297 @@
+---
+title: "CSN lab-4"
+author: "Raphaël Vignon - Mattéo Boursault"
+date: "2022-11-10"
+output: html_document
+---
+
+```{r include=FALSE}
+
+# Clear plots from the R plots view:
+if(!is.null(dev.list())) dev.off()
+
+# Clean workspace - No variables at the current workspace
+rm(list=ls())
+
+# Dependencies 
+
+libs<-c("data.table","xtable", "tidyverse")
+to_install<-libs[!libs %in% installed.packages()]
+for(libs in to_install) install.packages(libs)
+sapply(libs,require,character=TRUE)
+```
+
+```{r include=FALSE}
+
+# Load Data
+
+setwd("C:/Users/matteo/Desktop/CSN-lab-4")
+source = read.table("list_data.txt", header = TRUE, as.is = c("language","file"))
+```
+
+## 2 Data preparation
+
+```{r}
+
+# To check validity
+
+verification <- function(row){
+	n <- row["vertices"]
+	k2 <- row["degree_2nd_moment"]
+	d <- row["mean_length"]
+	condition_k = (k2 >= 4-6/n && k2 <= n-1)
+	condition_d = (d >= n/(8*(n-1)) * k2 + 0.5 && d <= n-1)
+	return(condition_k && condition_d)
+}
+
+# to compute summary for Table 1
+
+compute_summary <- function(language, data) {
+  c(language,
+  	length(data$vertices),
+  	mean(data$vertices),
+  	sd(data$vertices),
+  	mean(data$degree_2nd_moment),
+  	sd(data$degree_2nd_moment))
+}
+
+# To produce Table 1
+
+table_1 = data.frame(matrix(nrow = 0, ncol = 6))
+datas = list()
+
+for (x in 1:nrow(source)) {
+  language = source$language[x]
+  file = source$file[x]
+  
+  data <- read.table(file)
+  colnames(data) <- c("vertices", "degree_2nd_moment", "mean_length")
+  verified <- apply(data, 1, verification)
+  data_clean <- data[verified,]
+  data_ordered <- data_clean[order(data_clean$vertices),]
+  
+  datas[[language]] <- data_ordered
+  append(datas, data_ordered)
+  table_1 = rbind(table_1, compute_summary(language, data_ordered))
+}
+
+rm(data, data_clean, data_ordered)
+colnames(table_1) = c('Language', 'N', 'µn', 'σn', 'µx', 'σx')
+```
+
+## 3 Data analysis
+
+# 3.1 Preliminary visualization
+```{r}
+
+# To visualize data
+
+visualisation <- function(data){
+  mean_data = aggregate(data, list(data$vertices), mean)
+
+  plot(data$vertices, data$mean_length,
+    xlab = "vertices", ylab = "mean dependency length")
+  
+  plot(log(data$vertices), log(data$mean_length),
+    xlab = "log(vertices)", ylab = "log(mean dependency length)")
+  
+  plot(mean_data$vertices, mean_data$mean_length,
+    xlab = "vertices", ylab = "mean mean dependency length")
+  
+  plot(log(mean_data$vertices), log(mean_data$mean_length),
+    xlab = "log(vertices)", ylab = "log(mean mean dependency length)")
+  
+  plot(log(data$vertices), log(data$mean_length),
+    xlab = "vertices", ylab = "mean dependency length")
+    lines(log(mean_data$vertices),log(mean_data$mean_length), col = "green")
+    lines(log(mean_data$vertices),log((mean_data$vertices+1)/3), col = "red")
+  
+  plot(data$vertices, data$degree_2nd_moment,
+    xlab = "vertices", ylab = "degree 2nd moment")
+    lines(mean_data$vertices,mean_data$degree_2nd_moment, col = "green")
+    lines(data$vertices,(1 - 1/data$vertices)*(5 - 6/data$vertices), col = "red")
+    lines(data$vertices,4-6/data$vertices, col = "blue")
+    lines(data$vertices,data$vertices-1, col = "blue")
+}
+
+visualisation(datas["Catalan"]$Catalan)
+```
+
+## 4 Non-linear regression
+
+Models 0, 1, 2, 3 and 1+ mandatory
+Models 4, 4+ not mandatory
+Models 2+, 3+ to do in Section 7
+
+```{r}
+
+compute_s <- function(nlm){
+  sqrt(deviance(nlm)/df.residual(nlm))
+}
+
+models = list()
+table_s = data.frame(matrix(nrow = 0, ncol = 7))
+table_AIC = data.frame(matrix(nrow = 0, ncol = 7))
+table_AIC_diff = data.frame(matrix(nrow = 0, ncol = 7))
+table_param = data.frame(matrix(nrow = 0, ncol = 11))
+
+for (language in source$language) {
+  data = datas[language]
+  data = unlist(data, FALSE)
+  names(data) <- c("vertices", "degree_2nd_moment", "mean_length")
+  
+  # Check homocesdasticity
+  if(fligner.test(degree_2nd_moment ~ vertices, data = data)$p.value < 0.05){
+    data <- aggregate(data, list(data$vertices), mean)
+  }
+
+	# Model 1
+  lm_1 = lm(log(degree_2nd_moment)~log(vertices), data)
+  b_initial_1 = coef(lm_1)[2]
+  nlm_1 = nls(degree_2nd_moment~(1/2)*vertices^b, 
+              data,
+              start = list(b = b_initial_1))
+  
+  # Model 2
+  lm_2 = lm(log(degree_2nd_moment)~log(vertices), data)
+  a_initial_2 = exp(coef(lm_2)[1])
+  b_initial_2 = coef(lm_2)[2]
+  nlm_2 = nls(degree_2nd_moment~a*vertices^b, 
+              data,
+              start = list(a = a_initial_2, b = b_initial_2))
+  
+  # Model 3
+  lm_3 = lm(log(degree_2nd_moment)~vertices, data)
+  a_initial_3 = exp(coef(lm_3)[1])
+  c_initial_3 = coef(lm_3)[2]
+  nlm_3 = nls(degree_2nd_moment~a*exp(c*vertices), 
+              data,
+              start = list(a = a_initial_3, c = c_initial_3))
+  
+  # Model 4
+  lm_4 = lm(degree_2nd_moment~log(vertices), data)
+  a_initial_4 = exp(coef(lm_4)[1])
+  nlm_4 = nls(degree_2nd_moment~a*log(vertices), 
+              data,
+              start = list(a = a_initial_4))
+  
+	# Model 1+
+  lm_1_plus = lm(log(degree_2nd_moment)~log(vertices), data)
+  b_initial_1_plus = coef(lm_1)[2]
+  nlm_1_plus = nls(degree_2nd_moment~(1/2)*vertices^b+d, 
+              data,
+              start = list(b = b_initial_1_plus, d = 0))
+  
+  # Model 4+
+  lm_4_plus = lm(degree_2nd_moment~log(vertices), data)
+  a_initial_4_plus = exp(coef(lm_4)[1])
+  nlm_4_plus = nls(degree_2nd_moment~a*log(vertices)+d, 
+              data,
+              start = list(a = a_initial_4_plus, d = 0))
+
+  models[[language]] <- list(nlm_1 = nlm_1, 
+                             nlm_2 = nlm_2, 
+                             nlm_3 = nlm_3, 
+                             nlm_4 = nlm_4, 
+                             nlm_1_plus = nlm_1_plus, 
+                             nlm_4_plus = nlm_4_plus)
+  
+  s_vec = sapply(list(nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus), compute_s)
+  AIC_vec = sapply(list(nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus), AIC)
+  AIC_diff_vec = AIC_vec - min(AIC_vec)
+  
+  table_s <- rbind(table_s, c(language, s_vec))
+  table_AIC <- rbind(table_AIC, c(language, AIC_vec))
+  table_AIC_diff <- rbind(table_AIC_diff, c(language, AIC_diff_vec))
+  
+  table_param <- rbind(table_param, c(language, coef(nlm_1)["b"], 
+    coef(nlm_2)["a"], coef(nlm_2)["b"], coef(nlm_3)["a"],
+    coef(nlm_3)["c"], coef(nlm_4)["a"], coef(nlm_1_plus)["b"], coef(nlm_1_plus)["d"],
+    coef(nlm_4_plus)["a"], coef(nlm_4_plus)["d"]))
+}
+
+rm(lm_1, lm_2, lm_3, lm_4, lm_1_plus, lm_4_plus, nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus)
+colnames(table_s) <- c("Language", "1", "2", "3", "4", "1+", "4+")
+colnames(table_AIC) <- c("Language", "1", "2", "3", "4", "1+", "4+")
+colnames(table_AIC_diff) <- c("Language", "1", "2", "3", "4", "1+", "4+")
+colnames(table_param) <- c("Language", "1-b", "2-a", "2-b", "3-a", "3-c", "4-a", "1+-b", "1+-d", "4+a", "4+d")
+```
+
+## 5 Results
+
+# 5.2 Final visualization
+```{R message=FALSE}
+
+# Arabic
+Arabic = datas["Arabic"]$Arabic
+Arabic <- aggregate(Arabic, list(Arabic$vertices), mean)
+plot(log(Arabic$vertices), Arabic$degree_2nd_moment, main = "Arabic best fit",
+  xlab = "log(vertices)", ylab = "degree 2nd moment")
+  lines(log(Arabic$vertices), fitted(models["Arabic"]$Arabic$nlm_4_plus), col = "green")
+  
+# Basque
+Basque = datas["Basque"]$Basque
+Basque <- aggregate(Basque, list(Basque$vertices), mean)
+plot(log(Basque$vertices), Basque$degree_2nd_moment, main = "Basque best fit",
+  xlab = "log(vertices)", ylab = "degree 2nd moment")
+  lines(log(Basque$vertices), fitted(models["Basque"]$Basque$nlm_4_plus), col = "green")
+  
+# Catalan
+Catalan = datas["Catalan"]$Catalan
+Catalan <- aggregate(Catalan, list(Catalan$vertices), mean)
+plot(log(Catalan$vertices), Catalan$degree_2nd_moment, main = "Catalan best fit",
+  xlab = "log(vertices)", ylab = "degree 2nd moment")
+  lines(log(Catalan$vertices), fitted(models["Catalan"]$Catalan$nlm_4_plus), col = "green")
+  
+# Chinese
+Chinese = datas["Chinese"]$Chinese
+Chinese <- aggregate(Chinese, list(Chinese$vertices), mean)
+plot(log(Chinese$vertices), Chinese$degree_2nd_moment, main = "Chinese best fit",
+  xlab = "log(vertices)", ylab = "degree 2nd moment")
+  lines(log(Chinese$vertices), fitted(models["Chinese"]$Chinese$nlm_4_plus), col = "green")
+  
+# Czech
+Czech = datas["Czech"]$Czech
+Czech <- aggregate(Czech, list(Czech$vertices), mean)
+plot(log(Czech$vertices), log(Czech$degree_2nd_moment), main = "Czech best fit",
+  xlab = "log(vertices)", ylab = "log(degree 2nd moment)")
+  lines(log(Czech$vertices), log(fitted(models["Czech"]$Czech$nlm_1)), col = "green")
+
+# English
+English = datas["English"]$English
+English <- aggregate(English, list(English$vertices), mean)
+plot(log(English$vertices), English$degree_2nd_moment, main = "English best fit",
+  xlab = "log(vertices)", ylab = "degree 2nd moment")
+  lines(log(English$vertices), fitted(models["English"]$English$nlm_4_plus), col = "green")
+  
+# Greek
+Greek = datas["Greek"]$Greek
+Greek <- aggregate(Greek, list(Greek$vertices), mean)
+plot(log(Greek$vertices), Greek$degree_2nd_moment, main = "Greek best fit",
+  xlab = "log(vertices)", ylab = "degree 2nd moment")
+  lines(log(Greek$vertices), fitted(models["Greek"]$Greek$nlm_4_plus), col = "green")
+  
+# Hungarian
+Hungarian = datas["Hungarian"]$Hungarian
+Hungarian <- aggregate(Hungarian, list(Hungarian$vertices), mean)
+plot(log(Hungarian$vertices), Hungarian$degree_2nd_moment, main = "Hungarian best fit",
+  xlab = "log(vertices)", ylab = "degree 2nd moment")
+  lines(log(Hungarian$vertices), fitted(models["Hungarian"]$Hungarian$nlm_4_plus), col = "green")
+  
+# Italian
+Italian = datas["Italian"]$Italian
+Italian <- aggregate(Italian, list(Italian$vertices), mean)
+plot(log(Italian$vertices), Italian$degree_2nd_moment, main = "Italian best fit",
+  xlab = "log(vertices)", ylab = "degree 2nd moment")
+  lines(log(Italian$vertices), fitted(models["Italian"]$Italian$nlm_4_plus), col = "green")
+  
+# Turkish
+Turkish = datas["Turkish"]$Turkish
+Turkish <- aggregate(Turkish, list(Turkish$vertices), mean)
+plot(log(Turkish$vertices), Turkish$degree_2nd_moment, main = "Turkish best fit",
+  xlab = "log(vertices)", ylab = "degree 2nd moment")
+  lines(log(Turkish$vertices), fitted(models["Turkish"]$Turkish$nlm_4_plus), col = "green")
+```
+
+
+
