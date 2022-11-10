@@ -22,10 +22,11 @@ sapply(libs,require,character=TRUE)
 ```
 
 ```{r include=FALSE}
-
-# Load Data
-
 setwd("C:/Users/matteo/Desktop/CSN-lab-4")
+```
+
+```{r include=FALSE}
+# Load Data
 source = read.table("list_data.txt", header = TRUE, as.is = c("language","file"))
 ```
 
@@ -189,6 +190,13 @@ for (language in source$language) {
               data,
               start = list(a = a_initial_4_plus, d = 0))
 
+  # Model 0
+  model_0_RSS<-sum((data$degree_2nd_moment-(1-1/data$vertices)*(5-5/data$vertices))^2)
+  model_0_n<-length(data$vertices)
+  p<-0
+  model_0_s<-sqrt(model_0_RSS/(model_0_n-p))
+  model_0_AIC<-model_0_n*log(2*pi)+model_0_n*log(model_0_RSS/model_0_n)+model_0_n+2*(p+1)
+  
   models[[language]] <- list(nlm_1 = nlm_1, 
                              nlm_2 = nlm_2, 
                              nlm_3 = nlm_3, 
