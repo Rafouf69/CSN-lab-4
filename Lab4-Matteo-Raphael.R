@@ -137,6 +137,15 @@ model <- function(data_language) {
 							start = list(a = a_initial_3, c = c_initial_3), 
 							trace = TRUE)
 	
+	print("Model1+")
+	lm_1_p = lm(log(data_language$degree_2nd_moment)~data_language$vertices, data_language)
+	a_initial_1_p = exp(coef(lm_1_p)[1])
+	c_initial_1_p = coef(lm_1_p)[2]
+	nlm_1_p = nls(data_language$degree_2nd_moment~a*exp(c*language_data$vertices),
+							data=data_language,
+							start = list(a = a_initial_1_p, c = c_initial_1_p), 
+							trace = TRUE)
+	
 	
 	
 }
