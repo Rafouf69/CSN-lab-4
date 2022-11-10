@@ -204,8 +204,10 @@ for (language in source$language) {
                              nlm_1_plus = nlm_1_plus, 
                              nlm_4_plus = nlm_4_plus)
   
-  s_vec = sapply(list(model_0_s, nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus), compute_s)
-  AIC_vec = sapply(list(model_0_AIC, nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus), AIC)
+  s_vec = sapply(list(nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus), compute_s)
+  s_vec = c(model_0_s, s_vec)
+  AIC_vec = sapply(list(nlm_1, nlm_2, nlm_3, nlm_4, nlm_1_plus, nlm_4_plus), AIC)
+  AIC_vec = c(model_0_AIC, AIC_vec)
   AIC_diff_vec = AIC_vec - min(AIC_vec)
   
   table_s <- rbind(table_s, c(language, s_vec))
