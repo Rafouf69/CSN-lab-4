@@ -337,6 +337,12 @@ Turkish   : model 0
 
 ### Discussion
 
+
+
 ### Methods
 
 For checking homoscedasticity, we have use Levene's test. In statistics, Levene's test is an inferential statistic used to assess the equality of variances for a variable calculated for two or more groups. But perhaps the test is to restrictive because for all language, the assumption of homoscedasticity does not hold.
+
+From a technical point of view, we decided to store all data in lists to facilitate data manipulation, reduce the number of calculations and save memory.
+
+
